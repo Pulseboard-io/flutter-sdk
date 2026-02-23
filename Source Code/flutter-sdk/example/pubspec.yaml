@@ -1,0 +1,11 @@
+name: app_analytics_example
+description: Example app demonstrating the Pulseboard Flutter SDK.
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  app_analytics:
+    path: ../
