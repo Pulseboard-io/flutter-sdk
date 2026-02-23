@@ -27,6 +27,13 @@
 
 ## Recent Changes
 
+### 2026-02-23 (Project Edit/Delete & Admin Nav Links)
+- **Project Delete** — Added full project deletion to ProjectSettings Livewire component with confirmation modal. User must type the project name to confirm. Soft-deletes the project and redirects to projects index. Only visible to users with `delete` policy permission (team owners and admins).
+- **Project Edit Enhancements** — Added field labels, validation error display for name and platform fields.
+- **Admin Nav Links** — Created `x-admin-nav-links` Blade component showing Filament, Horizon, and Pulse links in the user dropdown for admin users. Included in both `app-top-bar` and `project-top-bar`.
+- **Tests** — 10 new tests: ProjectSettingsTest (8 tests: renders, update name, update platform, name required, danger zone visibility, delete confirmation mismatch, successful delete with soft-delete verification, non-owner cannot see danger zone), AppTopBarTest (2 tests: admin sees links, non-admin doesn't).
+- Full test suite: **580 passed**, 1 skipped, 0 failures (1487 assertions)
+
 ### 2026-02-23 (Dashboard Navigation Redesign)
 - **New Components** — Created `x-nav-tab` (reusable tab with icon slot, active state, border-b indicator) and `x-mobile-nav-drawer` (hamburger button + Alpine.js slide-down drawer for mobile).
 - **App Top Bar Redesign** — Added Heroicons to Dashboard, Projects tabs. Added Billing tab linking to team settings. Integrated mobile hamburger drawer with all nav items + account links (Profile, API Tokens, Team Settings, Log Out). User dropdown hidden on mobile (replaced by drawer).
