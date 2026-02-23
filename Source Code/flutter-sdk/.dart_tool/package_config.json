@@ -446,7 +446,7 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "app_analytics",
+      "name": "pulseboard_analytics",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.0"

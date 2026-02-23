@@ -1,4 +1,4 @@
-name: app_analytics
+name: pulseboard_analytics
 description: Pulseboard Flutter analytics SDK for mobile app event tracking, crash reporting, and performance tracing.
 version: 0.1.0
 

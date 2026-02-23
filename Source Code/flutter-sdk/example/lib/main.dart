@@ -1,4 +1,4 @@
-import 'package:app_analytics/app_analytics.dart';
+import 'package:pulseboard_analytics/pulseboard_analytics.dart';
 import 'package:flutter/material.dart';
 
 void main() async {

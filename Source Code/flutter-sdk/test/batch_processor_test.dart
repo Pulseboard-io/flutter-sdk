@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:app_analytics/src/config.dart';
-import 'package:app_analytics/src/services/batch_processor.dart';
-import 'package:app_analytics/src/services/http_client.dart';
+import 'package:pulseboard_analytics/src/config.dart';
+import 'package:pulseboard_analytics/src/services/batch_processor.dart';
+import 'package:pulseboard_analytics/src/services/http_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;

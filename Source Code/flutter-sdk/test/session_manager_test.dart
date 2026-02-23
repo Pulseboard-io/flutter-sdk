@@ -1,5 +1,5 @@
-import 'package:app_analytics/src/services/session_manager.dart';
-import 'package:app_analytics/src/utils/clock.dart';
+import 'package:pulseboard_analytics/src/services/session_manager.dart';
+import 'package:pulseboard_analytics/src/utils/clock.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 

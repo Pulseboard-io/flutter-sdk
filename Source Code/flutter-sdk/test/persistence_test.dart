@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app_analytics/src/services/persistence.dart';
+import 'package:pulseboard_analytics/src/services/persistence.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

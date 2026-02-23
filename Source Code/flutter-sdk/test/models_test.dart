@@ -1,13 +1,13 @@
-import 'package:app_analytics/src/models/analytics_event.dart';
-import 'package:app_analytics/src/models/app_info.dart';
-import 'package:app_analytics/src/models/batch_payload.dart';
-import 'package:app_analytics/src/models/batch_response.dart';
-import 'package:app_analytics/src/models/breadcrumb.dart';
-import 'package:app_analytics/src/models/crash_report.dart';
-import 'package:app_analytics/src/models/device_info_model.dart';
-import 'package:app_analytics/src/models/trace_event.dart';
-import 'package:app_analytics/src/models/user_info.dart';
-import 'package:app_analytics/src/models/user_property_op.dart';
+import 'package:pulseboard_analytics/src/models/analytics_event.dart';
+import 'package:pulseboard_analytics/src/models/app_info.dart';
+import 'package:pulseboard_analytics/src/models/batch_payload.dart';
+import 'package:pulseboard_analytics/src/models/batch_response.dart';
+import 'package:pulseboard_analytics/src/models/breadcrumb.dart';
+import 'package:pulseboard_analytics/src/models/crash_report.dart';
+import 'package:pulseboard_analytics/src/models/device_info_model.dart';
+import 'package:pulseboard_analytics/src/models/trace_event.dart';
+import 'package:pulseboard_analytics/src/models/user_info.dart';
+import 'package:pulseboard_analytics/src/models/user_property_op.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

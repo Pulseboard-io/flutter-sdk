@@ -1,4 +1,4 @@
-name: app_analytics_example
+name: pulseboard_analytics_example
 description: Example app demonstrating the Pulseboard Flutter SDK.
 
 environment:
@@ -7,5 +7,5 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  app_analytics:
+  pulseboard_analytics:
     path: ../

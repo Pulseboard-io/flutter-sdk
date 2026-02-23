@@ -1,6 +1,6 @@
-import 'package:app_analytics/src/models/breadcrumb.dart';
-import 'package:app_analytics/src/models/crash_report.dart';
-import 'package:app_analytics/src/services/crash_handler.dart';
+import 'package:pulseboard_analytics/src/models/breadcrumb.dart';
+import 'package:pulseboard_analytics/src/models/crash_report.dart';
+import 'package:pulseboard_analytics/src/services/crash_handler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

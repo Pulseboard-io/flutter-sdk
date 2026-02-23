@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:app_analytics/app_analytics.dart';
+import 'package:pulseboard_analytics/pulseboard_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;

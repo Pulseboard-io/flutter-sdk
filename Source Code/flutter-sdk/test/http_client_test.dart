@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:app_analytics/src/config.dart';
-import 'package:app_analytics/src/models/app_info.dart';
-import 'package:app_analytics/src/models/batch_payload.dart';
-import 'package:app_analytics/src/models/device_info_model.dart';
-import 'package:app_analytics/src/models/user_info.dart';
-import 'package:app_analytics/src/services/http_client.dart';
+import 'package:pulseboard_analytics/src/config.dart';
+import 'package:pulseboard_analytics/src/models/app_info.dart';
+import 'package:pulseboard_analytics/src/models/batch_payload.dart';
+import 'package:pulseboard_analytics/src/models/device_info_model.dart';
+import 'package:pulseboard_analytics/src/models/user_info.dart';
+import 'package:pulseboard_analytics/src/services/http_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
