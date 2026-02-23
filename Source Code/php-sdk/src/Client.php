@@ -84,6 +84,16 @@ final class Client
         ]);
     }
 
+    /**
+     * Grant or revoke consent for the current user (anonymous_id).
+     * Consent types: 'analytics', 'crash_reporting', 'performance'.
+     * Call before flush when the environment has consent_required so trace/crash/event types are accepted.
+     */
+    public function grantConsent(string $consentType, bool $granted = true): bool
+    {
+        return $this->transport->sendConsent($this->anonymousId, $consentType, $granted);
+    }
+
     public function captureException(\Throwable $e, ?string $fingerprint = null, bool $fatal = false): void
     {
         $this->enqueue([

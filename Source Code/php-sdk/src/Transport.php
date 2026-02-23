@@ -10,7 +10,9 @@ use GuzzleHttp\Psr7\Request;
 
 final class Transport
 {
-    private const ENDPOINT_PATH = '/api/v1/ingest/batch';
+    private const BATCH_PATH = '/api/v1/ingest/batch';
+
+    private const CONSENT_PATH = '/api/v1/ingest/consent';
 
     public function __construct(
         private readonly ClientInterface $client,
@@ -21,7 +23,7 @@ final class Transport
 
     public function send(array $payload): bool
     {
-        $url = $this->dsn->baseUrl.self::ENDPOINT_PATH;
+        $url = $this->dsn->baseUrl.self::BATCH_PATH;
         $headers = [
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer '.$this->dsn->publicKey,
@@ -38,6 +40,29 @@ final class Transport
         try {
             $response = $this->client->send($request);
             return $response->getStatusCode() === 202;
+        } catch (GuzzleException $e) {
+            return false;
+        }
+    }
+
+    public function sendConsent(string $anonymousId, string $consentType, bool $granted): bool
+    {
+        $url = $this->dsn->baseUrl.self::CONSENT_PATH;
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer '.$this->dsn->publicKey,
+        ];
+        $body = json_encode([
+            'anonymous_id' => $anonymousId,
+            'consent_type' => $consentType,
+            'granted' => $granted,
+        ]);
+        $request = new Request('POST', $url, $headers, $body);
+
+        try {
+            $response = $this->client->send($request);
+
+            return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
         } catch (GuzzleException $e) {
             return false;
         }

@@ -49,6 +49,11 @@ try {
     $client->captureException($e, fatal: true);
 }
 
+// Grant consent so the API accepts events, crashes, and performance traces (required when environment has consent_required)
+$client->grantConsent('analytics', true);
+$client->grantConsent('crash_reporting', true);
+$client->grantConsent('performance', true);
+
 $client->flush();
 
 if ($lastResponse === null) {
