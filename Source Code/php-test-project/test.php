@@ -24,7 +24,31 @@ $httpClient = new \GuzzleHttp\Client([
 ]);
 
 $client = Client::init($dsn, null, $httpClient);
-$client->track('page_view', ['path' => '/']);
+$client->track('page_view', ['path' => '/test']);
+
+// Performance: measure real work and send traces (shows in project Performance explorer)
+$t0 = hrtime(true);
+usleep(50_000); // simulate 50ms work
+$client->trace('database_query', (int) round((hrtime(true) - $t0) / 1e6), [
+    'query' => 'SELECT * FROM users',
+    'table' => 'users',
+]);
+
+$t0 = hrtime(true);
+usleep(120_000); // simulate 120ms work
+$client->trace('api_request', (int) round((hrtime(true) - $t0) / 1e6), [
+    'endpoint' => '/api/v1/projects',
+    'method' => 'GET',
+    'status' => 200,
+]);
+
+// Simulate a crash: throw, catch, and report to Pulseboard
+try {
+    throw new \RuntimeException('Simulated crash from PHP test project');
+} catch (\Throwable $e) {
+    $client->captureException($e, fatal: true);
+}
+
 $client->flush();
 
 if ($lastResponse === null) {
