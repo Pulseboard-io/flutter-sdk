@@ -4,7 +4,7 @@
 2026-02-23
 
 ## Current Phase
-**Phase 7: Compliance & Governance Complete** - Full GDPR compliance: audit logging, consent management, data deletion (Art. 17), data export (Art. 15/20), retention enforcement, PII settings UI, data breach tracking, and compliance dashboard.
+**Phase 10: Onboarding Flow & Dashboard Redesign Complete** - Guided onboarding wizard, dashboard enhancements (recent events, top crashes, getting started checklist), smart project routing.
 
 ## Overall Progress
 
@@ -17,10 +17,41 @@
 | 05 - Flutter SDK | Complete | 100% |
 | 06 - Analytics Dashboards | Complete | 100% |
 | 07 - Compliance & Governance | Complete | 100% |
-| 08 - Billing Placeholder | Not Started | 0% |
-| 09 - Quality & CI/CD | Not Started | 0% |
+| 08 - Billing Placeholder | Complete | 100% |
+| 09 - Quality & CI/CD | Complete | 100% |
+| 10 - Onboarding & Dashboard | Complete | 100% |
 
 ## Recent Changes
+
+### 2026-02-23 (Plan 10: Onboarding Flow & Dashboard Redesign)
+- **Phase 1: Database & Model** — Added `onboarding_completed_at`, `onboarding_step`, `getting_started_dismissed_at` columns to projects table. Updated Project model with fillable, casts, and helper methods (`hasCompletedOnboarding()`, `hasReceivedData()`, `isGettingStartedDismissed()`). Added `completed()` factory state.
+- **Phase 2: SdkSnippetService** — Extracted SDK snippet logic from ProjectKeyManager into shared `SdkSnippetService` with `getFrameworks()`, `getInstallCommand()`, `getConfigSnippet()` methods supporting flutter, react_native, javascript, php, laravel frameworks. Refactored ProjectKeyManager to use the service.
+- **Phase 3: Onboarding Wizard** — Created `OnboardingWizard` Livewire component with 4-step flow: framework selection → install command → configure with DSN → verify first event. Auto-generates write key for production environment. Uses `wire:poll.3s` on verify step. Skip option marks onboarding complete. Updated `ProjectCreate` to redirect to onboarding instead of settings.
+- **Phase 4: Dashboard Enhancements** — Added `getRecentEvents()` and `getTopCrashGroups()` to MetricsService. Created `RecentEventsFeed` (wire:poll.10s), `TopCrashes`, and `GettingStartedChecklist` Livewire components with Blade views. Updated `stat-card` with optional `previousValue` prop. Updated dashboard layout with new bottom row (recent events + top crashes) and getting started checklist at top.
+- **Phase 5: Smart Routing** — ProjectDashboard redirects to onboarding for new projects. Shows `<x-waiting-for-data>` component when no events/users exist. Created reusable waiting-for-data Blade component with pulsing animation, DSN display, and link to revisit onboarding.
+- **Phase 6: Tests** — 26 new tests across 6 files: OnboardingWizardTest (9), RecentEventsFeedTest (3), TopCrashesTest (3), GettingStartedChecklistTest (4), updated ProjectDashboardTest (7), updated ProjectModelTest (10). Updated E2E test to handle onboarding redirect.
+- Full test suite: **475 passed**, 1 skipped, 0 failures (1252 assertions)
+
+### 2026-02-23 (Plan 09: Quality & CI/CD)
+- **Phase 1: Test Organization** — Moved ~30 root-level feature tests into logical subdirectories: Auth/ (11), Teams/ (8), Api/ (4), Foundation/ (4), Models/ (5), Authorization/ (2), Admin/ (4). Zero breakage.
+- **Phase 2: Test Configuration** — Updated Pest.php to extend TestCase into Contract and E2E directories. Added Contract and E2E test suites to phpunit.xml.
+- **Phase 3: GitHub Actions CI** — Created `.github/workflows/ci.yml` with two parallel jobs:
+  - `laravel-tests`: Ubuntu + PHP 8.4 + PostgreSQL 16 + Redis 7, Composer + Node 20 build, Pest + Pint checks
+  - `flutter-tests`: Flutter stable, pub get, analyze, test
+- **Phase 4: Contract Tests** — Created `tests/Contract/IngestPayloadV1Test.php` (8 tests): validates 202 response structure, per-event-type schema compliance (event/crash/trace/user_properties), invalid schema_version 422, missing required fields 422 with structured errors, mixed event types in single batch.
+- **Phase 5: Contract Tests** — Created `tests/Contract/QueryResponseTest.php` (6 tests): metrics KPI numeric values, paginated events with data/meta/links, event item required keys, crash groups structure, trace percentiles structure, auth requirement.
+- **Phase 6: E2E Smoke Test** — Created `tests/E2E/OnboardingFlowTest.php` (1 comprehensive test): register user → personal team auto-created → create project via API (3 environments) → generate write key → POST ingest batch (202) → ProcessIngestBatch sync → verify events persisted, sessions created, daily aggregates updated → Livewire dashboard renders.
+- Full test suite: 449 passed, 1 skipped, 0 failures (15 new tests added)
+
+### 2026-02-23 (Plan 08: Billing Placeholder)
+- Added plans table (Free/Trial/Pro/Enterprise) and team_subscriptions table; migration-seeded plans, backfill migration for existing teams.
+- Created Plan and TeamSubscription models; Team.subscription() HasOne; TeamObserver creates Free subscription on team create.
+- EntitlementService: getPlanForTeam, getLimits, getCurrentUsage, isWithinLimits, isApproachingLimits (events from DailyAggregate, members/projects counts).
+- Team settings: tabbed layout (General, Members, Billing, Danger zone); Billing tab with Livewire BillingManager (current plan, usage, plan comparison table, trial countdown, Upgrade placeholder link).
+- Upgrade CTA component shown on app dashboard and project dashboard when isApproachingLimits (≥80%); links to team billing tab.
+- CheckEntitlement middleware (entitlement:projects) on projects.create; AddTeamMember action checks team_members limit and throws AuthorizationException when at limit.
+- Gate advancedRetention for Pro/Enterprise plans (AppServiceProvider).
+- Tests: EntitlementServiceTest (10), TeamBillingTest (2), EntitlementMiddlewareTest (5). No Spark coupling; no payment provider.
 
 ### 2026-02-23 (Filament Admin Resources Blueprint)
 - Implemented Filament Blueprint adding seven admin resources to the Admin panel: Devices, Teams, Projects, CrashReports, Traces, ConsentRecords, DataBreachIncidents.
@@ -314,6 +345,33 @@
 
 **New files created:** 3 migrations, 2 enums, 5 models, 4 services, 2 jobs, 1 command, 3 controllers, 3 form requests, 1 factory, 2 Livewire components, 2 Blade views, 1 trait, 8 test files (~41 new tests)
 
+### 2026-02-23 (Compliance Refactoring — Contracts, Context, Resources, Caching)
+- **Contracts (Task #11):** Created 4 interfaces in `app/Contracts/Compliance/`: AuditServiceContract, ConsentServiceContract, DeletionServiceContract, ExportServiceContract. All services now implement their contracts. Bindings registered in AppServiceProvider.
+- **Controllers updated:** ComplianceController and ConsentController type-hint contracts instead of concrete services. ProcessIngestBatch job also uses ConsentServiceContract.
+- **Events & Listeners (Task #12):** Already fully implemented in prior session — 9+ domain events, 11+ listeners, DomainEventSubscriber, model observers all present.
+- **Context facade (Task #13):** Enhanced AddRequestContext middleware to propagate user_id, team_id, ip_address alongside trace_id. AuditService falls back to Context values when auth/request context unavailable (e.g., in queued jobs). Context dehydration shares keys with queued jobs.
+- **API Resources (Task #14):** Created 5 resources: AuditLogResource, ConsentRecordResource, DataDeletionRequestResource, DataExportJobResource, DataBreachIncidentResource. ComplianceController now returns Resources instead of manual JSON.
+- **Caching (Task #15):** ConsentService.hasConsent() cached for 120s with automatic invalidation on grant/revoke. ComplianceDashboard stats cached for 60s (wrapping Concurrency::run).
+- 10 new tests in ComplianceRefactoringTest: contract resolution, context propagation, consent caching, resource serialization, API endpoints with contracts, dashboard caching.
+- Full test suite: 434 passed, 1 skipped, 0 failures
+
+
+- Redesigned entire application UI to match the Pulseboard reference design (React/Tailwind prototype)
+- **Design system updates:**
+  - Added JetBrains Mono web font alongside Inter
+  - Labels use `text-[10px] font-mono uppercase tracking-wider` with underscore_names
+  - Page headings use `font-light tracking-tight` (not bold)
+  - Stat cards have gradient hover lines, `text-3xl font-light` values, colored trend badges
+  - Primary color: indigo (#6366f1), dark palette (#050505, #0a0a0a, #111, #222, #444, #666)
+  - Cards: `rounded-lg` + `dark:shadow-none`, no `rounded-xl`
+- **CSS additions:** `.btn-danger`, `.mono-label`, `.panel-header` utility classes
+- **Components updated:** stat-card, page-header (subtitle prop), data-table (sticky headers), empty-state, project-top-bar (green dot + mono selector), stack-trace-viewer, upgrade-cta, dark-mode-toggle
+- **Livewire views updated:** project-dashboard (mono chart headers, indigo lines, JetBrains Mono ticks), event-explorer (search icon, mono filter tags, type badges), sessions-explorer (mono headings), crash-explorer (card-based groups, rose exception names), performance-explorer (mono headings), date-range-picker (button group), environment-switcher (mono + uppercase)
+- **Project management views updated:** project-list (mono badges), project-create (mono labels, full-width buttons), project-settings (mono headings), project-key-manager (full rewrite with mono table), environment-settings (data governance layout with toggles)
+- **Compliance views updated:** compliance-dashboard (underscore headings, bordered items), pii-settings (toggle layout, mono labels)
+- Updated ComplianceDashboardTest assertions for underscore-separated heading text
+- npm build: success; pint: pass; tests: 424 passed, 1 skipped, 0 failures
+
 ## Next Steps
-1. Begin Plan 08: Billing Placeholder
-2. Then Plan 09: Quality & CI/CD
+1. Manual verification of onboarding wizard and dashboard enhancements
+2. Consider additional dashboard widgets (funnels, retention charts)
