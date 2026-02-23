@@ -1,0 +1,38 @@
+{
+    "name": "pulseboard/php-sdk",
+    "description": "Pulseboard analytics SDK for PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pixel & Process UG (haftungsbeschränkt)",
+            "email": "info@pixelandprocess.de",
+            "homepage": "https://pixelandprocess.de"
+        }
+    ],
+    "homepage": "https://github.com/pixelandprocess/pulseboard-php-sdk",
+    "support": {
+        "issues": "https://github.com/pixelandprocess/pulseboard-php-sdk/issues",
+        "source": "https://github.com/pixelandprocess/pulseboard-php-sdk"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pulseboard\\Sdk\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pulseboard\\Sdk\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

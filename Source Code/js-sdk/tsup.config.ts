@@ -8,4 +8,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   minify: false,
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.js' }),
 });

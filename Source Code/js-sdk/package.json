@@ -7,9 +7,9 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
@@ -24,7 +24,10 @@
     "analytics",
     "pulseboard"
   ],
-  "author": "",
+  "author": "Pixel & Process UG (haftungsbeschränkt) <info@pixelandprocess.de> (https://pixelandprocess.de)",
+  "repository": "github:pixelandprocess/pulseboard-js-sdk",
+  "homepage": "https://github.com/pixelandprocess/pulseboard-js-sdk#readme",
+  "bugs": "https://github.com/pixelandprocess/pulseboard-js-sdk/issues",
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.3.5",

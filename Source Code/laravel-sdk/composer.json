@@ -1,0 +1,54 @@
+{
+    "name": "pulseboard/laravel",
+    "description": "Pulseboard analytics SDK for Laravel",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pixel & Process UG (haftungsbeschränkt)",
+            "email": "info@pixelandprocess.de",
+            "homepage": "https://pixelandprocess.de"
+        }
+    ],
+    "homepage": "https://github.com/pixelandprocess/pulseboard-laravel",
+    "support": {
+        "issues": "https://github.com/pixelandprocess/pulseboard-laravel/issues",
+        "source": "https://github.com/pixelandprocess/pulseboard-laravel"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pulseboard\\Laravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pulseboard\\Laravel\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Pulseboard\\Laravel\\PulseboardServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "pulseboard/php-sdk": "dev-main"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../php-sdk"
+        }
+    ],
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}
