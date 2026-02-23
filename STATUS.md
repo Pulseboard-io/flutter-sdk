@@ -4,7 +4,7 @@
 2026-02-23
 
 ## Current Phase
-**Phase 10: Onboarding Flow & Dashboard Redesign Complete** - Guided onboarding wizard, dashboard enhancements (recent events, top crashes, getting started checklist), smart project routing.
+**SaaS Implementation Phase 4 Complete** - Webhooks & alerts system with webhook management, alert rules, threshold evaluation, and notifications.
 
 ## Overall Progress
 
@@ -20,8 +20,52 @@
 | 08 - Billing Placeholder | Complete | 100% |
 | 09 - Quality & CI/CD | Complete | 100% |
 | 10 - Onboarding & Dashboard | Complete | 100% |
+| SaaS Phase 1 - Bug Fixes | Complete | 100% |
+| SaaS Phase 2 - Spark Billing | Complete | 100% |
+| SaaS Phase 3 - Marketing Pages | Complete | 100% |
+| SaaS Phase 4 - Webhooks & Alerts | Complete | 100% |
 
 ## Recent Changes
+
+### 2026-02-23 (Dashboard Navigation Redesign)
+- **New Components** — Created `x-nav-tab` (reusable tab with icon slot, active state, border-b indicator) and `x-mobile-nav-drawer` (hamburger button + Alpine.js slide-down drawer for mobile).
+- **App Top Bar Redesign** — Added Heroicons to Dashboard, Projects tabs. Added Billing tab linking to team settings. Integrated mobile hamburger drawer with all nav items + account links (Profile, API Tokens, Team Settings, Log Out). User dropdown hidden on mobile (replaced by drawer).
+- **Project Top Bar Redesign** — Grouped 9 tabs into primary (Dashboard, Events, Sessions, Crashes, Performance) and "More" dropdown (Compliance, Webhooks, Alerts, Settings). Added Heroicons to all tabs. "More" dropdown highlights when any secondary tab is active. Project switcher now visible on md+ (was lg+). Mobile drawer shows project switcher at top, all 9 tabs as a list, All Projects link, and account links.
+- **Consistent Design** — Both bars use the same `x-mobile-nav-drawer` and `x-nav-tab` components. Consistent spacing, transitions, dark mode styling, and `relative` positioning for drawer panels.
+- **Tests** — 12 new tests across 2 files: AppTopBarTest (5 tests: tabs, mobile menu, user dropdown, dark mode, billing link), ProjectTopBarTest (6 tests: primary tabs, more dropdown, project switcher, mobile menu, active state, all projects link).
+- Full test suite: **570 passed**, 1 skipped, 0 failures (1458 assertions)
+
+### 2026-02-23 (SaaS Phase 4: Webhooks & Alerts System)
+- **Migrations** — Created `webhooks` (team_id, url, encrypted secret, events JSON, active), `webhook_deliveries` (webhook_id, event_type, payload, response_code, response_body, attempts, delivered_at), `alert_rules` (project_id, name, metric, operator, threshold, webhook_id, notification_channels, active, last_triggered_at). Added `slack_webhook_url` to teams.
+- **Enums** — Created `WebhookEventType` (crash.new/resolved, alert.threshold, export.ready, deletion.complete), `AlertMetric` (crash_count, error_rate, p95_cold_start, event_volume, crash_free_rate), `AlertOperator` (>, <, >=, <=, ==).
+- **Models** — Created `Webhook` (encrypted secret, events array, subscribesTo method), `WebhookDelivery` (isSuccessful helper), `AlertRule` (enum casts, evaluate method with operator matching). Added `webhooks()` relation to Team, `alertRules()` relation to Project.
+- **Factories** — Created WebhookFactory, WebhookDeliveryFactory, AlertRuleFactory with inactive/failed states.
+- **WebhookService** — `dispatch()` finds matching active webhooks for event type and queues SendWebhook jobs. `generateSignature()` HMAC-SHA256. `testDelivery()` synchronous test with HTTP client.
+- **SendWebhook Job** — Queued on `compliance` queue, 3 tries with [10, 60, 300]s backoff. Posts with `X-Pulseboard-Signature` and `X-Pulseboard-Event` headers. Logs delivery result.
+- **AlertEvaluator** — Evaluates all active rules per project. `getMetricValue()` computes crash_count, error_rate, p95_cold_start, event_volume, crash_free_rate from DB. `handleTriggered()` dispatches webhooks and sends AlertTriggeredNotification.
+- **AlertTriggeredNotification** — Mail + Slack channels. Includes alert name, metric, threshold, current value, project link.
+- **CheckAlertThresholds Command** — `alerts:check-thresholds` scheduled hourly. Evaluates all projects with active alert rules.
+- **Livewire Components** — `WebhookManager` (CRUD webhooks, test delivery, toggle active, delivery log). `AlertRuleManager` (CRUD alert rules with metric/operator/threshold, webhook binding, notification channels).
+- **Routes** — Added `/projects/{project}/webhooks` and `/projects/{project}/alerts` under project scope. Added Webhooks and Alerts tabs to project top bar navigation.
+- **Tests** — 36 new tests across 8 files: WebhookServiceTest (6), SendWebhookJobTest (2), AlertEvaluatorTest (5), CheckAlertThresholdsCommandTest (3), WebhookManagerTest (6), AlertRuleManagerTest (5), WebhookModelTest (3), AlertRuleModelTest (6).
+- Full test suite: **559 passed**, 1 skipped, 0 failures (1423 assertions)
+
+### 2026-02-23 (SaaS Phase 3: Public Marketing Pages)
+- **Marketing Layout** — Created shared `layouts/marketing.blade.php` with sticky nav (Features, Pricing, Contact, Terms, Privacy, Login/Register), GDPR/EU trust badges in footer, dark mode support. Created `MarketingLayout` view component class.
+- **Landing Page** — Rewrote `welcome.blade.php` to use marketing layout. Hero section ("Privacy-first analytics for mobile apps"), 6 feature highlight cards, plan preview grid (Free/Pro/Enterprise), EU trust badges (GDPR, EU Data Residency, Flutter-First SDK).
+- **Pricing Page** — Created `/pricing` with 4 plan cards (Free/Trial/Pro/Enterprise) with feature lists and CTAs. Full feature comparison table with all plan limits.
+- **Features Page** — Created `/features` with 6 alternating feature sections: Event Analytics, Session Tracking, Crash Reporting, Performance Tracing, GDPR Compliance, Team Collaboration. Gradient illustration placeholders. CTA banner.
+- **Contact Page** — Created `/contact` with email/sales cards, company info (Germany, EU, Hetzner, GDPR).
+- **Terms & Privacy** — Created GDPR-focused markdown files (`resources/markdown/terms-of-service.md`, `privacy-policy.md`). Updated `terms.blade.php` and `policy.blade.php` to use marketing layout. Terms cover: EU jurisdiction, data retention by plan, data minimization. Privacy covers: data controller, sub-processors, DSAR 30-day SLA, data residency, security measures.
+- **Routes** — Added named routes: `marketing.home`, `marketing.pricing`, `marketing.features`, `marketing.contact`.
+- **Tests** — 23 new tests across 6 files: WelcomePageTest (5), PricingPageTest (4), FeaturesPageTest (4), ContactPageTest (4), TermsPageTest (3), PrivacyPageTest (3).
+- Full test suite: **523 passed**, 1 skipped, 0 failures (1354 assertions)
+
+### 2026-02-23 (Dashboard Improvements — Top Bar Only)
+- **Dashboard Aggregate Overview** — Updated dashboard route to pass team projects (with `withCount('environments')`) and member count. Dashboard now shows stat cards (Total Projects, Team Members) and recent projects grid (up to 6) when projects exist; empty state preserved when no projects.
+- Navigation uses **top bar only** (no sidebar). Layouts unchanged from original top-bar approach.
+- Files modified: `dashboard.blade.php`, `routes/web.php`
+- Full test suite: **475 passed**, 1 skipped, 0 failures (1252 assertions)
 
 ### 2026-02-23 (Plan 10: Onboarding Flow & Dashboard Redesign)
 - **Phase 1: Database & Model** — Added `onboarding_completed_at`, `onboarding_step`, `getting_started_dismissed_at` columns to projects table. Updated Project model with fillable, casts, and helper methods (`hasCompletedOnboarding()`, `hasReceivedData()`, `isGettingStartedDismissed()`). Added `completed()` factory state.
