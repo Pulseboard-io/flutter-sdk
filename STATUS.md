@@ -4,7 +4,7 @@
 2026-02-23
 
 ## Current Phase
-**Phase 5: Flutter SDK Complete** - Full Flutter analytics SDK implemented with DSN parsing, event tracking, crash reporting, performance tracing, session management, and offline support.
+**Phase 7: Compliance & Governance Complete** - Full GDPR compliance: audit logging, consent management, data deletion (Art. 17), data export (Art. 15/20), retention enforcement, PII settings UI, data breach tracking, and compliance dashboard.
 
 ## Overall Progress
 
@@ -15,12 +15,30 @@
 | 03 - Data Model & Project Mgmt | Complete | 100% |
 | 04 - Ingestion API & Processing | Complete | 100% |
 | 05 - Flutter SDK | Complete | 100% |
-| 06 - Analytics Dashboards | Not Started | 0% |
-| 07 - Compliance & Governance | Not Started | 0% |
+| 06 - Analytics Dashboards | Complete | 100% |
+| 07 - Compliance & Governance | Complete | 100% |
 | 08 - Billing Placeholder | Not Started | 0% |
 | 09 - Quality & CI/CD | Not Started | 0% |
 
 ## Recent Changes
+
+### 2026-02-23 (Filament Admin Resources Blueprint)
+- Implemented Filament Blueprint adding seven admin resources to the Admin panel: Devices, Teams, Projects, CrashReports, Traces, ConsentRecords, DataBreachIncidents.
+- All resources use admin-only policies (DevicePolicy, CrashReportPolicy, TracePolicy, ConsentRecordPolicy, DataBreachIncidentPolicy); TeamPolicy and ProjectPolicy updated to allow admins to view/update/delete any team or project.
+- Navigation groups and sort order: User Management (1), Organization – Teams (2), Projects (3), Environments & devices – Devices (4), Crash & performance – Crash Reports (5), Traces (6), Consent & compliance – Consent Records (7), Data Breach Incidents (8).
+- Relation managers: TeamResource – ProjectsRelationManager, DataBreachIncidentsRelationManager; ProjectResource – EnvironmentsRelationManager (columns: name, retention_days_raw, pii_mode, created_at).
+- Enums Platform, ConsentType, BreachSeverity implement Filament HasLabel; BreachSeverity implements HasColor for badges.
+- ConsentRecord create: unique validation for (environment_id, app_user_id, consent_type); created_at set in mutateFormDataBeforeCreate (model has $timestamps = false).
+- Tests: FilamentAdminResourcesTest (29 tests) – non-admin 403 on list/create for all resources, admin list access, CRUD for Team/Project/DataBreachIncident/ConsentRecord, filters (team_id, severity), relation managers (Projects, DataBreachIncidents on Team).
+
+### 2026-02-23 (Filament Admin User Management)
+- Implemented Filament Blueprint for admin-only user management (plan: Admin User Management Filament Blueprint).
+- Admin panel set as default; path `/admin`; access restricted via `User::canAccessPanel()` (is_admin).
+- UserResource: list/create/edit/view with form (name, email, password, is_admin, email_verified_at), table with filters (is_admin, email_verified), infolist on view page; navigation group "User Management", global search on name/email.
+- Relation managers: Teams (attach/detach, pivot role, no create), SocialAccounts (view + revoke), Tokens (view + revoke).
+- UserPolicy: all abilities require `$user->isAdmin()`; policy used by Filament for resource authorization.
+- UserStatsWidget: dashboard stats for total users, verified users, admins.
+- Tests: FilamentUserResourceTest (16 tests) for panel/resource auth, CRUD, validation, relation managers; Queue::fake() used to avoid welcome-email view errors in tests.
 
 ### 2026-02-23 (Plan 01 Implementation)
 - Switched database from SQLite to PostgreSQL 16 (installed via Homebrew)
@@ -171,6 +189,131 @@
 - `flutter analyze` passes with 0 issues
 - `flutter test` passes all 64 tests
 
+### 2026-02-23 (Plan 06 Implementation)
+- Installed Chart.js via npm; exposed as `window.Chart` in app.js
+- Created MetricsService with 9 methods: getKpis, getPreviousPeriodKpis, getDailyActiveUsers, getEventVolume, getTopEvents, getCrashFreeRateTrend, getEventNames, getTracePercentiles, getTraceVersionBreakdown
+- MetricsService uses 5-minute caching, PostgreSQL `PERCENTILE_CONT()` for trace percentiles, `BOOL_OR()` for crash grouping
+- Created reusable Blade components: timeseries-chart, bar-chart, stack-trace-viewer, data-table
+- Created DateRangePicker Livewire component with presets (7d/14d/30d/90d), static parseDateRange() helper
+- Created EnvironmentSwitcher Livewire component with session persistence
+- Built project-scoped layout (`layouts/project.blade.php`) with sidebar navigation
+- Created ShareProjectWithView middleware for passing route-bound Project to layout views
+- Created 5 dashboard Livewire components:
+  - ProjectDashboard: KPI cards, DAU chart, event volume, top events bar chart, crash-free rate trend
+  - EventExplorer: Name autocomplete, filters, paginated results, event detail modal
+  - CrashExplorer: Fingerprint grouping, fatal/version filters, detail view with stack trace and breadcrumbs
+  - PerformanceExplorer: Trace percentile display, drill-down with histogram and version breakdown
+  - SessionsExplorer: Session list with detail view and event timeline
+- Created 4 analytics API controllers: MetricsController, EventsController, CrashesController, TracesController
+- Created 4 Form Request classes for API validation
+- Registered project-scoped web routes with ShareProjectWithView middleware
+- Registered 4 API analytics routes under /api/v1/analytics
+- Fixed EnvironmentFactory to generate unique short names (avoids ProjectObserver conflict)
+- Fixed TeamFactory to use `fake()->words()` instead of `$this->faker->company()` (Faker provider issue)
+- Moved MetricsServiceTest from Unit to Feature (requires Laravel app bootstrap for factories)
+- Wrote 29 new tests across 6 test files:
+  - MetricsServiceTest: 7 unit tests (KPIs, crash-free rate, top events, event names, DAU, event volume, trace percentiles)
+  - MetricsApiTest: 7 API tests (overview, validation, events search, name filtering, crashes, traces, auth)
+  - ProjectDashboardTest: 4 tests (renders, component, date range, environment change)
+  - EventExplorerTest: 4 tests (renders, events display, name filtering, event detail)
+  - CrashExplorerTest: 4 tests (renders, empty state, crash groups, detail view)
+  - PerformanceExplorerTest: 3 tests (renders, trace percentiles, drill-down)
+- Full test suite: 286 passed, 1 skipped, 0 failures
+
+### 2026-02-23 (Queuing & Horizon Optimization)
+- Queued team invitation emails (`Mail::queue()` instead of `Mail::send()`)
+- Added caching to `MetricsService::getEventNames()` (120s TTL) and `getTraceVersionBreakdown()` (300s TTL)
+- Created `PrecomputeMetrics` queued job to warm metric caches hourly for all environments
+- Scheduled `horizon:snapshot` every 5 minutes for metrics graphs
+- Scheduled hourly metric pre-computation with `withoutOverlapping()` to prevent queue flooding
+- Optimized Horizon configuration for high-throughput analytics:
+  - `fast_termination: true` for zero-downtime Forge deploys
+  - Master memory limit raised to 128MB
+  - Ingest supervisor: minProcesses=2, maxProcesses=10, balanceMaxShift=3, balanceCooldown=1s (fast auto-scale for burst SDK traffic)
+  - Default supervisor: minProcesses=1, maxProcesses=5 (emails, notifications, metric pre-computation)
+  - Compliance supervisor: minProcesses=1, maxProcesses=3, timeout=600s, simple balance (GDPR exports/deletions)
+  - Wait time thresholds: ingest=30s (tighter), default=60s, compliance=120s
+  - Trim: recent jobs 3h, failed jobs 7d
+- Updated InviteTeamMember test to use `assertQueued()` instead of `assertSent()`
+- Full test suite: 286 passed, 1 skipped, 0 failures
+
+### 2026-02-23 (Plan 07 Implementation)
+- **Phase 1: Audit Log System**
+  - Created `audit_logs` migration with UUID PK, team_id/user_id FKs, action/resource/metadata/ip fields, immutable (no updated_at)
+  - Created `AuditAction` enum with 16 compliance actions (consent, deletion, export, retention, breach, etc.)
+  - Created `AuditLog` model with HasUuids, scopes: forTeam(), forAction(), forResource()
+  - Created `AuditService` with static log() using direct DB::table()->insert() for speed, auto-resolves auth context, truncates IP via PiiFilter
+  - Created `Auditable` trait for convenience audit() method
+  - 7 tests: creation, IP truncation, scopes, immutability, unauthenticated context
+
+- **Phase 2: Consent Management**
+  - Created `consent_records` migration with unique (environment, app_user, consent_type) constraint, nullable app_user_id with nullOnDelete FK (preserves records after user deletion)
+  - Created `ConsentRecord` model with HasUuids, active() scope
+  - Created `ConsentRecordFactory` with revoked() and forType() states
+  - Created `ConsentService`: grantConsent() (upsert + audit), revokeConsent() (+ audit), hasConsent() (indexed lookup), getConsentStatus()
+  - Created `ConsentController` for POST /api/v1/ingest/consent (project_key auth)
+  - Created `ConsentRequest` form request
+  - Modified `ProcessIngestBatch`: pre-computes consent map per user, checks consent per event type (Analytics/CrashReporting/Performance), rejects events without consent when environment.consent_required=true
+  - 6 ConsentService tests + 2 ProcessIngestBatch consent tests
+
+- **Phase 3: Data Deletion Workflow (Art. 17)**
+  - Created `DeletionService`: requestDeletion() creates DataDeletionRequest (30-day SLA), dispatches job, audit-logged
+  - Created `ProcessDataDeletion` job (queue: compliance, tries: 3, timeout: 300, backoff: [30,120,600]):
+    - FullDelete: chunked deletion (1000 rows + 50ms sleep) of events, crashes, traces, sessions, then AppUser. Consent records preserved via nullOnDelete FK.
+    - Pseudonymize: replaces anonymous_id with pseudonymized_{uuid}, nulls user_id/hash/properties
+    - Generates deletion certificate JSON at compliance/certificates/{id}.json
+  - Created `ComplianceController` with 5 endpoints: requestErasure (POST 202), erasureStatus (GET), requestExport (POST 202), exportStatus (GET), downloadExport (GET with signed URL)
+  - Created `ErasureRequest` and `AccessRequestRequest` form requests
+  - Added compliance API routes under /api/v1/projects/{project}/compliance/
+  - 6 tests: full erasure, pseudonymization, consent preservation, certificate, SLA, non-existent user
+
+- **Phase 4: Data Export Workflow (Art. 15, 20)**
+  - Created `ExportService`: requestExport() creates DataExportJob, dispatches job, audit-logged
+  - Created `ProcessDataExport` job (queue: compliance, tries: 3, timeout: 600):
+    - Streams user data via cursor() (no OOM): profile, events, sessions, crashes, traces, consent history
+    - Builds structured JSON with metadata (processing purposes, retention info, GDPR Art. 15/20 compliance)
+    - Creates ZIP at compliance/exports/{id}.zip
+  - Download via 48h signed temporary URL, audit-logged on download
+  - 5 tests: job dispatch, ZIP creation, data completeness, audit logging, non-existent user
+
+- **Phase 5: Retention Enforcement**
+  - Created `EnforceRetention` artisan command (compliance:enforce-retention {--dry-run}):
+    - Per environment: deletes raw data (events, crashes, traces, sessions) older than retention_days_raw, aggregates older than retention_days_agg
+    - Never deletes consent_records
+    - Chunked deletion (1000 rows + 100ms sleep)
+    - --dry-run mode counts without deleting
+    - Audit-logged per environment with row counts
+  - Scheduled daily at 02:00 UTC with withoutOverlapping()
+  - 5 tests: old data deleted, recent preserved, consent never deleted, dry-run mode, audit logging
+
+- **Phase 6: PII Settings UI**
+  - Created `PiiSettings` Livewire component: per-environment form for PII mode, IP truncation, user ID hashing, lawful basis, consent required toggle, allowlist/denylist editors
+  - Created Blade view at livewire/compliance/pii-settings.blade.php
+  - Save is audit-logged with PiiSettingsUpdated action
+  - Route: /projects/{project}/compliance/pii
+  - 3 tests: renders, saves settings + audit log, environment switching
+
+- **Phase 7: Data Breach Foundation**
+  - Created `data_breach_incidents` migration with team FK, severity, affected_users_count, affected_environments (jsonb), discovered/reported/resolved timestamps
+  - Created `BreachSeverity` enum: Low, Medium, High, Critical
+  - Created `DataBreachIncident` model with HasUuids, unresolved() scope, team/reporter relationships
+  - Created `DataBreachIncidentFactory` with resolved() state
+  - 4 tests: creation, relationships, scopes, JSON environments
+
+- **Phase 8: Compliance Dashboard**
+  - Created `ComplianceDashboard` Livewire component: stats cards (pending/overdue deletions, pending exports, active breaches), consent summary per type, recent audit logs table, retention policy display, quick action links
+  - Created Blade view at livewire/compliance/compliance-dashboard.blade.php
+  - Route: /projects/{project}/compliance
+  - Added "Compliance" nav item (shield-check icon) to sidebar before Settings
+  - 3 tests: renders, shows stats, retention policies
+
+- **Phase 9: Final Integration**
+  - Added consentRecords() relationship to Environment model
+  - Ran Pint formatter on all modified files
+  - Full test suite: 327 passed, 1 skipped, 0 failures
+
+**New files created:** 3 migrations, 2 enums, 5 models, 4 services, 2 jobs, 1 command, 3 controllers, 3 form requests, 1 factory, 2 Livewire components, 2 Blade views, 1 trait, 8 test files (~41 new tests)
+
 ## Next Steps
-1. Begin Plan 06: Analytics Dashboards
-2. Then Plan 07: Compliance & Governance
+1. Begin Plan 08: Billing Placeholder
+2. Then Plan 09: Quality & CI/CD
