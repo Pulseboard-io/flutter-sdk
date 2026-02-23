@@ -5,3 +5,8 @@ dist/
 .env.*
 .DS_Store
 coverage/
+
+# Cursor / AI agent files
+AGENTS.md
+CLAUDE.md
+.cursor/

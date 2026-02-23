@@ -4,3 +4,8 @@ vendor/
 .env
 .env.*
 .DS_Store
+
+# Cursor / AI agent files
+AGENTS.md
+CLAUDE.md
+.cursor/
