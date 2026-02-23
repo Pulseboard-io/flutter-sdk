@@ -27,6 +27,14 @@
 
 ## Recent Changes
 
+### 2026-02-23 (Bugfix: Sessionizer duration_ms causing event rejection)
+- **Root Cause** — `Sessionizer::updateSession()` computed `duration_ms` via `Carbon::diffInMilliseconds()` which returns a float. PostgreSQL rejected the float for the integer column, causing a silent exception that rolled back the event. All events after the first in a batch (which creates the session) triggered `updateSession()` and were rejected.
+- **Fix** — Cast `duration_ms` to `(int) abs(...)` in `Sessionizer.php:114-115`. This ensures the value is always a non-negative integer.
+- **Impact** — Previously only ~4 of 9 events per batch were accepted (1st event + user_properties + traces which skip sessionization). Now all 9/9 accepted.
+- **Reprocessed** — Cleared dedup cache and reprocessed all 3 existing PHP SDK test batches. All now show 9 accepted, 0 rejected.
+- **Test** — Added "processes multiple events in a single batch with shared session" test to `ProcessIngestBatchTest.php` verifying 5 events in one batch all get accepted and share one session with integer `duration_ms >= 0`.
+- All ingestion tests pass: **71 passed** (151 assertions)
+
 ### 2026-02-23 (Project Edit/Delete & Admin Nav Links)
 - **Project Delete** — Added full project deletion to ProjectSettings Livewire component with confirmation modal. User must type the project name to confirm. Soft-deletes the project and redirects to projects index. Only visible to users with `delete` policy permission (team owners and admins).
 - **Project Edit Enhancements** — Added field labels, validation error display for name and platform fields.
