@@ -431,6 +431,35 @@
 - Updated ComplianceDashboardTest assertions for underscore-separated heading text
 - npm build: success; pint: pass; tests: 424 passed, 1 skipped, 0 failures
 
+### 2026-02-24 (Authentication & Jetstream UI Redesign)
+- **Full redesign of 30+ Blade files** covering all auth, profile, API token, and team management views
+- **Guest layout** — Dark mode default, FOUC prevention script, JetBrains Mono font, split layout auth card with indigo gradient left panel + grid pattern overlay, features list, GDPR/EU trust badges
+- **7 auth pages redesigned** — login, register, forgot-password, reset-password, verify-email, confirm-password, two-factor-challenge. All with consistent headings, space-y-4 forms, full-width submit buttons, footer navigation links
+- **Core form components** — input, label, button, secondary-button, danger-button, checkbox, input-error, validation-errors. All rounded-lg with consistent dark mode tokens (dark-border, dark-input, dark-text, dark-surface)
+- **Jetstream section components** — form-section, action-section, section-title, section-border with rounded-xl card wrapping and border-t action separators
+- **Modal components** — modal (backdrop-blur-sm), dialog-modal, confirmation-modal with rose-themed warning icons
+- **Profile pages** — update-profile-info (ring-2 photo, amber unverified email warning), update-password, 2FA (status badges, QR code card, recovery codes card), browser-sessions, delete-user
+- **API tokens** — token list with divide-y pattern, bordered code block for token display
+- **Team pages** — tabbed layout (general/members/danger), role selector with rounded-xl divided buttons, member list with ring-2 photos
+- **CSS utilities** — Updated btn-primary, btn-secondary, btn-danger, card classes
+- npm build: success; 563 tests passed (60 pre-existing webhook test failures unrelated to redesign)
+
+### 2026-02-24 (Webhooks & Alerts: Bind to Projects instead of Teams)
+- **Migration** — Created `bind_webhooks_to_projects_remove_team_id` migration: migrates team-level webhooks (project_id=NULL) to each team's first project, drops `team_id` FK/column from webhooks, makes `project_id` NOT NULL, replaces indexes `[team_id, active]` and `[team_id, project_id]` with `[project_id, active]`.
+- **Webhook Model** — Removed `team()` relationship, `isTeamDefault()` method, and `team_id` from fillable. Webhooks are now purely project-scoped.
+- **Team Model** — Removed `webhooks()` HasMany relationship (webhooks no longer belong to teams).
+- **WebhookFactory** — Updated default to use `Project::factory()` instead of `Team::factory()`. Removed `team_id` field.
+- **WebhookManager Livewire** — `$project` is now required (was optional). Removed scope selector (team/project), all queries use `$this->project->webhooks()`.
+- **AlertRuleManager Livewire** — Simplified webhook loading from `team->webhooks()` dual-mode to `$this->project->webhooks()`.
+- **DeliveryLog Livewire** — Updated queries from team-scoped to project-scoped.
+- **WebhookService** — Changed `dispatch()` signature from `(Team, EventType, payload, ?Project)` to `(Project, EventType, payload)`. All callers updated.
+- **WebhookController API** — Index/store now use `$project->webhooks()` instead of `$project->team->webhooks()`. Removed `scope` field from store. Updated authorization.
+- **StoreWebhookRequest** — Removed `scope` validation rule.
+- **4 Listeners updated** — DispatchCrashNewWebhook, NotifyUserExportReadyWhenCompleted, NotifyUserDeletionRequestCompletedWhenFinished, AlertEvaluator. All now pass Project to `dispatch()`.
+- **Blade views** — Removed scope selector from webhook-manager, removed scope badge from webhook list, removed (project)/(team) label from alert-rule-manager webhook dropdown.
+- **All 36 webhook/alert tests pass** (previously 60 failures). Updated WebhookServiceTest, WebhookManagerTest to use project-scoped patterns.
+- Full test suite: **623 passed**, 1 skipped, 0 failures (1624 assertions)
+
 ## Next Steps
 1. Manual verification of onboarding wizard and dashboard enhancements
 2. Consider additional dashboard widgets (funnels, retention charts)

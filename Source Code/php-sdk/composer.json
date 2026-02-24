@@ -1,38 +1,35 @@
 {
-    "name": "pulseboard/php-sdk",
-    "description": "Pulseboard analytics SDK for PHP",
+    "name": "pulseboard/laravel",
+    "description": "Pulseboard backend monitoring SDK for Laravel applications",
     "type": "library",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Pixel & Process UG (haftungsbeschränkt)",
-            "email": "info@pixelandprocess.de",
-            "homepage": "https://pixelandprocess.de"
-        }
-    ],
-    "homepage": "https://github.com/pixelandprocess/pulseboard-php-sdk",
-    "support": {
-        "issues": "https://github.com/pixelandprocess/pulseboard-php-sdk/issues",
-        "source": "https://github.com/pixelandprocess/pulseboard-php-sdk"
+    "keywords": ["laravel", "monitoring", "analytics", "apm", "pulseboard"],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/http": "^11.0|^12.0",
+        "illuminate/queue": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0|^4.0"
     },
     "autoload": {
         "psr-4": {
-            "Pulseboard\\Sdk\\": "src/"
+            "Pulseboard\\Laravel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Pulseboard\\Sdk\\Tests\\": "tests/"
+            "Pulseboard\\Laravel\\Tests\\": "tests/"
         }
     },
-    "require": {
-        "php": "^8.2",
-        "guzzlehttp/guzzle": "^7.8"
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Pulseboard\\Laravel\\PulseboardServiceProvider"
+            ]
+        }
     },
-    "require-dev": {
-        "phpunit/phpunit": "^11.0"
-    },
-    "config": {
-        "sort-packages": true
-    }
+    "minimum-stability": "stable"
 }
